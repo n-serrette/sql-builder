@@ -98,5 +98,11 @@ int main()
     assert(d.str() ==
             "delete from user where id = 1");
 
+    SelectModel natural_join;
+    natural_join.select("*")
+        .from("user")
+        .natural_join("profile");
+    assert(select.str() == "select * from user natural join profile");
+
     return 0;
 }

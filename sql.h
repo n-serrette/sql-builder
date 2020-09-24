@@ -253,7 +253,7 @@ inline std::string to_value<column>(const column& data) {
 }
 
 
-class SqlModel 
+class SqlModel
 {
 public:
     SqlModel() {}
@@ -304,7 +304,7 @@ public:
         from(tables...);
         return *this;
     }
-    
+
     // for recursion
     SelectModel& from() {
         return *this;
@@ -348,6 +348,27 @@ public:
 
     SelectModel& full_outer_join(const std::string& table_name) {
         _join_type = "full outer join";
+        _join_table = table_name;
+        return *this;
+    }
+
+    SelectModel& natural_join(const std::string & table_name)
+    {
+        _join_type = "natural join";
+        _join_table = table_name;
+        return *this;
+    }
+
+    SelectModel& natural_left_join(const std::string & table_name)
+    {
+        _join_type = "natural left join";
+        _join_table = table_name;
+        return *this;
+    }
+
+    SelectModel& natural_right_join(const std::string & table_name)
+    {
+        _join_type = "natural right join";
         _join_table = table_name;
         return *this;
     }
@@ -681,7 +702,7 @@ public:
         from(tables...);
         return *this;
     }
-    
+
     // for recursion
     DeleteModel& from() {
         return *this;
