@@ -102,7 +102,8 @@ int main()
     natural_join.select("*")
         .from("user")
         .natural_join("profile");
-    assert(select.str() == "select * from user natural join profile");
+    assert(natural_join.str() ==
+        "select * from user natural join profile");
 
     return 0;
 }
