@@ -129,6 +129,13 @@ public:
         return *this;
     }
 
+    column& in(const std::string& string)
+    {
+        _cond.append("in (");
+        _cond.append(string);
+        _cond.append(")");
+    }
+
     template <typename T>
     column& not_in(const std::vector<T>& args) {
         size_t size = args.size();
