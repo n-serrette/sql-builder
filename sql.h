@@ -134,6 +134,7 @@ public:
         _cond.append("in (");
         _cond.append(string);
         _cond.append(")");
+        return *this;
     }
 
     template <typename T>
