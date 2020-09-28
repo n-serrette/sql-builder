@@ -131,7 +131,7 @@ public:
 
     column& in(const std::string& string)
     {
-        _cond.append("in (");
+        _cond.append(" in (");
         _cond.append(string);
         _cond.append(")");
         return *this;
