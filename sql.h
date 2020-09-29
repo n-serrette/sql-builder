@@ -1,6 +1,8 @@
 #pragma once
 
 #include <vector>
+#include <map>
+#include <set>
 #include <string>
 
 namespace sql {
@@ -612,6 +614,105 @@ inline InsertModel& InsertModel::insert(const std::string& c, const std::nullptr
     _values.push_back("null");
     return *this;
 }
+
+
+class BulkInsertModel : public SqlModel
+{
+public:
+    BulkInsertModel(): _replace(false) {}
+    virtual ~BulkInsertModel() {}
+
+    template <typename T>
+    BulkInsertModel& insert(const std::string& c, const T& data) {
+        insert_column(c);
+        _values.emplace_back();
+        _values.back()[c] = to_value(data);
+        return *this;
+    }
+
+    template <typename T>
+    BulkInsertModel& operator()(const std::string& c, const T& data) {
+        insert_column(c);
+        _values.back()[c] = to_value(data);
+        return *this;
+    }
+
+    BulkInsertModel& into(const std::string& table_name) {
+        _table_name = table_name;
+        return *this;
+    }
+
+    BulkInsertModel& replace(bool var) {
+        _replace = var;
+        return *this;
+    }
+
+    BulkInsertModel& reset() {
+        _table_name.clear();
+        _columns.clear();
+        _values.clear();
+        return *this;
+    }
+
+    friend inline std::ostream& operator<< (std::ostream& out, BulkInsertModel& mod) {
+        out<<mod.str();
+        return out;
+    }
+
+    virtual const std::string& str() override {
+        _sql.clear();
+        std::string v_ss;
+
+        if (_replace) {
+            _sql.append("insert or replace into ");
+        }else {
+            _sql.append("insert into ");
+        }
+
+        _sql.append(_table_name);
+        _sql.append("(");
+
+        size_t size = _columns.size();
+        for(size_t i = 0; i < size; ++i) {
+            _sql.append(_columns[i]);
+            if(i < size - 1)
+                _sql.append(", ");
+        }
+        _sql.append(")");
+
+        v_ss.append(" values ");
+        for (size_t j = 0; j < _values.size(); ++j)
+        {
+            v_ss.append("(");
+            for (size_t i = 0; i < size; ++i)
+            {
+                v_ss.append(_values[j][_columns[i]]);
+                if (i < size - 1)
+                    v_ss.append(", ");
+            }
+            v_ss.append(")");
+            if (j < _values.size() - 1)
+                v_ss.append(", ");
+        }
+        _sql.append(v_ss);
+        return _sql;
+    }
+
+protected:
+    bool _replace;
+    std::string _table_name;
+    std::vector<std::string> _columns;
+    std::vector<std::map<std::string, std::string>> _values;
+
+private:
+    void insert_column(std::string const & c)
+    {
+        for (std::string const & col : _columns)
+            if(col == c)
+                return;
+        _columns.push_back(c);
+    }
+};
 
 
 class UpdateModel : public SqlModel

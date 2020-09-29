@@ -105,5 +105,13 @@ int main()
     assert(natural_join.str() ==
         "select * from user natural join profile");
 
+    BulkInsertModel bulk;
+    bulk.insert("name", "Bob")
+            ("age", 22)
+        .insert("name", "Alice")
+            ("age", 23)
+        .into("user");
+assert(bulk.str() == "insert into user(name, age) values ('Bob', 22), ('Alice', 23)");
+
     return 0;
 }
