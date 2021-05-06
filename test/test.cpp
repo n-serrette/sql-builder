@@ -33,6 +33,31 @@ int main()
     assert(i.str() ==
             "insert into user(score, name, age, address, create_time) values(100, 'six', 20, 'beijing', null)");
 
+    // Insert conflict
+    InsertModel ic;
+    ic.insert("score", 100)
+            ("name", std::string("six"))
+            ("age", (unsigned char)20)
+            ("address", "beijing")
+            ("create_time", nullptr)
+        .into("user")
+        .onConflict("name", "address")
+        .doNothing();
+    assert(ic.str() ==
+            "insert into user(score, name, age, address, create_time) values(100, 'six', 20, 'beijing', null) on conflict (name, address) do nothing");
+
+    InsertModel icc;
+    icc.insert("score", 100)
+            ("name", std::string("six"))
+            ("age", (unsigned char)20)
+            ("address", "beijing")
+            ("create_time", nullptr)
+        .into("user")
+        .onConflictOnConstraint("unique_name")
+        .doNothing();
+    assert(icc.str() ==
+            "insert into user(score, name, age, address, create_time) values(100, 'six', 20, 'beijing', null) on conflict on constraint unique_name do nothing");
+
     // Insert with named parameters
     InsertModel iP;
     Param score = ":score";
@@ -111,7 +136,7 @@ int main()
         .insert("name", "Alice")
             ("age", 23)
         .into("user");
-assert(bulk.str() == "insert into user(name, age) values ('Bob', 22), ('Alice', 23)");
+    assert(bulk.str() == "insert into user(name, age) values ('Bob', 22), ('Alice', 23)");
 
     return 0;
 }

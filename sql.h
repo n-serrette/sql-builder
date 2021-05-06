@@ -558,6 +558,47 @@ public:
         return *this;
     }
 
+    template <typename... Args>
+    InsertModel& onConflict(std::string const & column, Args&&... columns)
+    {
+        if(_conflict_columns.empty()) {
+            _conflict_columns = column;
+        } else {
+            _conflict_columns.append(", ");
+            _conflict_columns.append(column);
+        }
+        onConflict(columns...);
+        return *this;
+    }
+
+    // end recursion
+    InsertModel& onConflict()
+    {
+        return *this;
+    }
+
+    InsertModel& onConflictOnConstraint(std::string const & constraint)
+    {
+        _conflict_constraint = constraint;
+        return *this;
+    }
+
+    InsertModel& _do(std::string const & sql)
+    {
+        _conflict_do = sql;
+        return *this;
+    }
+
+    InsertModel& _do(SqlModel & sql)
+    {
+        return _do(sql.str());
+    }
+
+    InsertModel& doNothing()
+    {
+        return _do("nothing");
+    }
+
     virtual const std::string& str() override {
         _sql.clear();
         std::string v_ss;
@@ -586,6 +627,23 @@ public:
             }
         }
         _sql.append(v_ss);
+
+        if (!_conflict_columns.empty())
+        {
+            _sql.append(" on conflict (");
+            _sql.append(_conflict_columns);
+            _sql.append(") do ");
+            _sql.append(_conflict_do);
+        }
+        else if (!_conflict_constraint.empty())
+        {
+            _sql.append(" on conflict on constraint ");
+            _sql.append(_conflict_constraint);
+            _sql.append(" do ");
+            _sql.append(_conflict_do);
+
+        }
+
         return _sql;
     }
 
@@ -593,6 +651,10 @@ public:
         _table_name.clear();
         _columns.clear();
         _values.clear();
+        _conflict_columns.clear();
+        _conflict_constraint.clear();
+        _conflict_do.clear();
+        _replace = false;
         return *this;
     }
 
@@ -604,6 +666,9 @@ public:
 protected:
     bool _replace = false;
     std::string _table_name;
+    std::string _conflict_columns;
+    std::string _conflict_constraint;
+    std::string _conflict_do;
     std::vector<std::string> _columns;
     std::vector<std::string> _values;
 };

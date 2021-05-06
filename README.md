@@ -1,6 +1,6 @@
 # sql-builder
 
-[![Build Status](https://travis-ci.org/six-ddc/sql-builder.svg?branch=master)](https://travis-ci.org/six-ddc/sql-builder)
+[![Build Status](https://travis-ci.org/n-serrette/sql-builder.svg?branch=master)](https://travis-ci.org/n-serrette/sql-builder)
 
 ♥️ SQL query string builder for C++11
 
@@ -33,6 +33,20 @@
         .into("user");
     assert(iP.str() ==
             "insert into user(score, name, age, address, create_time) values(:score, :name, :age, :address, :create_time)");
+
+    // Insert with on conflict
+    InsertModel ic;
+    ic.insert("score", 100)
+            ("name", std::string("six"))
+            ("age", (unsigned char)20)
+            ("address", "beijing")
+            ("create_time", nullptr)
+        .into("user")
+        .onConflict("name", "address")
+        .doNothing();
+    assert(ic.str() ==
+            "insert into user(score, name, age, address, create_time) values(100, 'six', 20, 'beijing', null) on conflict (name, address) do nothing");
+
 
     // Select
     SelectModel s;
@@ -83,4 +97,12 @@
         .where(column("id") == 1);
     assert(d.str() ==
             "delete from user where id = 1");
+
+    BulkInsertModel bulk;
+    bulk.insert("name", "Bob")
+            ("age", 22)
+        .insert("name", "Alice")
+            ("age", 23)
+        .into("user");
+    assert(bulk.str() == "insert into user(name, age) values ('Bob', 22), ('Alice', 23)");
 ```
